@@ -6,6 +6,8 @@ int main() {
     double val2 {0};
     char operation {' '};
 
+
+
     std::cin >> val1 >> val2 >> operation;
 
     switch (operation)
@@ -17,10 +19,10 @@ int main() {
         std::cout << "The subtraction of " << val1 << " and " << val2 << " is " << val1 - val2;
         break;
     case '*':
-        std::cout << "The multiplication of " << val1 << " and " << val2 << " is " << val1 + val2;
+        std::cout << "The multiplication of " << val1 << " and " << val2 << " is " << val1 * val2;
         break;
     case '/':
-        std::cout << "The division of " << val1 << " and " << val2 << " is " << val1 + val2;
+        std::cout << "The division of " << val1 << " and " << val2 << " is " << val1 / val2;
         break;
     default:
         std::cout << "The operator " << operation << " is not supported!\n";
