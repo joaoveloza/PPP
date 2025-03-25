@@ -42,7 +42,7 @@ double term();        // read and evaluate a term
 //--------------------------------------------------------------------------
 
 double primary() {    // read and evaluate a Primary
- Token t {get_token};
+ Token t {get_token()};
  switch (t.kind) {
  case '(': // handle '(' expression ')'
   {
@@ -61,7 +61,7 @@ double primary() {    // read and evaluate a Primary
 int main() {
  try {
   while (cin)
-    cout << expression() << '\n';
+    cout << "=" << expression() << '\n';
  }
  catch (exception& e) {
   cerr << e.what() << endl;
@@ -82,11 +82,11 @@ double expression() {
   switch (t.kind) {
    case '+':
      left += term();     // evaluate term and add
-	   t {get_token};
+	   t = get_token();
 	 break;
    case '-':
      left -= term();     // evaluate term and subtract
-	 t = get_token();
+	   t = get_token();
 	 break;
    default:
      return left;        // finally: no more + or -: return the answer
@@ -104,13 +104,14 @@ double term() {
   switch (t.kind) {
    case '*':
      left *= primary();
-	 t {get_token()};
+	   t = get_token();
 	 break;
    case '/':
-	 double d {primary()};
+	 double d;            // can't define and initialize a variable simultaneously inside switch case statement.
+   d = primary();
 	 if (d == 0) error("divide by zero");
 	 left /= d;
-	 t {get_token()};
+	 t = get_token();
 	 break;
    default:
 	  return left;
