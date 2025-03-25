@@ -49,164 +49,156 @@
 #include "../PPP.h"
 
 class Token {
- public:
-   char kind;
-   double value;
-   Token(char ch):kind{ch}, value{0}{}
-   Token(char ch, double val):kind{ch}, value{val}{}
+    public:
+        char kind;
+        double value;
 };
 
 class Token_stream {
-  public:
-  Token get();
-  void putback(Token t);
-  private:
-  bool full {false};
-  Token buffer; 
+    public:
+        Token get();
+        void putback(Token t);
+    private:
+        bool full {false};
+        Token buffer;
 };
 
-Token Token_stream::get() {
-  // return a token from buffer or read a new one form cin
-  if (full) {
-    full = false;
-    return buffer;
-  }
+Token Token_stream::get() 
+// Return a token from buffer or read a new one from cin.
+{
+    if (full) {
+        full = false;
+        return buffer;
+    }
 
-  char ch;
-  cin >> ch;
+    char ch;
+    cin >> ch;
 
-  switch (ch)
-  {
-  case ';':
-  case 'q':
-  case '(': case ')':
-  case '+': case '-': case '*': case '/':
-    return Token {ch};
-  case '.':
-  case '0': case '1': case '2': case '3':
-  case '4': case '5': case '6': case '7':
-  case '8': case '9':
-       cin.putback(ch);
-       double val;
-       cin >> val;
-       return Token {'8', val};
-  default:
-    error("Bad token");
-  }
-};
+    switch (ch) {
+        case ';':
+        case 'q':
+        case '(': case ')':
+        case '+': case '-': case '*': case '/':
+            return Token{ch};
+        case '.':
+        case '0': case '1': case '2': case '3':
+        case '4': case '5': case '6': case '7':
+        case '8': case '9':
+            {
+                cin.putback(ch);
+                double val;
+                cin >> val;
+                return Token {'8', val};
+            }
+        default:
+            error("Bad token");
+    }
+}
 
-void Token_stream::putback(Token t) {
-    // put back a token on Token_stream to later use
-    // Pre-condition:
-    // The Token_stream buffer must not be full
+void Token_stream::putback(Token t)
+// Put back a token on Token_stream to later use
+// Pre-condition:
+//  The Token_stream buffer must not be full
+{
     if (full) error("putback() into a full buffer");
 
     buffer = t;
     full = true;
-};
+}
 
 Token_stream ts;
+double expression();
 
-double expression();  // read and evaluate a Expression
+double primary()
+{
+    Token t = ts.get();
+    switch (t.kind) {
+        case '(':
+            {
+                double d = expression();
+                t = ts.get();
+                if (t.kind != ')') error("')' expected");
+                return d;
+            }
+        case '8':
+            return t.value;
+        default:
+            error("primary expected");
+    }
+}
 
-//--------------------------------------------------------------------------
+double term()
+{
+    double left = primary();
+    Token t = ts.get();
 
-double term();        // read and evaluate a term
-
-//--------------------------------------------------------------------------
-
-double primary() {    // read and evaluate a Primary
- Token t {ts.get()};
- switch (t.kind) {
- case '(': // handle '(' expression ')'
-  {
-    double d = expression();
-	t = ts.get();
-	if (t.kind != ')') error("')' expected");
-	return d;
-  }
-  case '8':        // we use '8' to represent a number
-   return t.value; // return the number's value
-  default:
-   error("primary expected");
-   return -1;
- }
-};
-
-//---------------------------------------------------------------------------------
-
-double term() {
-    double left {primary()};   
-    Token t {ts.get()};   // get the next token
-   
     while (true) {
-     switch (t.kind) {
-      case '*':
-        left *= primary();
-          t = ts.get();
-        break;
-      case '/':
-        double d;            // can't define and initialize a variable simultaneously inside switch case statement.
-      d = primary();
-        if (d == 0) error("divide by zero");
-        left /= d;
-        t = ts.get();
-        break;
-      default:
-         ts.putback(t);
-         return left;
-     }
+        switch (t.kind) {
+            case '*':
+                left *= primary();
+                t = ts.get();
+                break;
+            case '/':
+                {
+                    double d = primary();
+                    if (d == 0) error("divide by zero");
+                    left /= d;
+                    t = ts.get();
+                    break;
+                }
+            default:
+                ts.putback(t);
+                return left;
+        }
     }
-   };
+}
 
-//---------------------------------------------------------------------------------
+double expression()
+{
+    double left = term();
+    Token t = ts.get();
 
-double expression() {
-    double left {term()};   // read and evaluate a Term
-    Token t {ts.get()};  // get the next token
     while (true) {
-     switch (t.kind) {
-      case '+':
-        left += term();     // evaluate term and add
-          t = ts.get();
-        break;
-      case '-':
-        left -= term();     // evaluate term and subtract
-          t = ts.get();
-        break;
-      default:
-        ts.putback(t);
-        return left;        // finally: no more + or -: return the answer
-     }
+        switch (t.kind) {
+            case '+':
+                left += term();
+                t = ts.get();
+                break;
+            case '-':
+                left -= term();
+                t = ts.get();
+                break;
+            default:
+                ts.putback(t);
+                return left;
+        }
     }
-   };
+}
 
-int main() {
- try {
-    double val {0};
-  while (cin) {
-    Token t {ts.get()};
+int main()
+try
+{
+    double val = 0;
+    while (cin) {
+        Token t = ts.get();
 
-    if (t.kind == 'q') break;
-    if (t.kind == ';') {
-        cout << '=' << val << '\n';
+        if (t.kind == 'q') break;
+        if (t.kind == ';') {
+            cout << '=' << val << '\n';
+        }
+        else {
+            ts.putback(t);
+            val = expression();
+        }
     }
-    else {
-        ts.putback(t);
-        val = expression();
-    }
-  }
- }
- catch (exception& e) {
-  cerr << e.what() << endl;
-  return 1;
- }
- catch (...) {
-  cerr << "Unknown exception \n";
-  return 2;
- }
-};
-
-
-
-
+}
+catch (exception& e)
+{
+    cerr << "Error: " << e.what() << '\n';
+    return 1;
+}
+catch (...)
+{
+    cerr << "Oops! Unknown exception\n";
+    return 2;
+}
