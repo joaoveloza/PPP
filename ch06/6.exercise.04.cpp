@@ -1,6 +1,6 @@
 // 6.exercise.04.cpp
 //
-// Define a class Nmae_value that holds a string and a value. Rework exercise 19 in
+// Define a class Name_value that holds a string and a value. Rework exercise 19 in
 // chapter 4 to use vectoe<Name_value> instead of two vectors.
 //
 //  4.exercise.19.cpp
